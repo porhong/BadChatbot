@@ -1,6 +1,9 @@
+import google.generativeai as palm
 import asyncio
-import openai
 from aiogram import Bot, Dispatcher, types, executor
+
+API_KEY = 'AIzaSyBcJCFrUHkLrF5ZhjJ_dsGyitgIPvqZlMc'
+
 
 
 bot = Bot(token="6538080926:AAFMORmrgG5Bh0Ri7ng4MX8HJ47lhxVGajE")
@@ -13,12 +16,22 @@ async def welcome(message: types.Message):
 
 @dp.message_handler()
 async def a(message: types.Message):
-    if message.text=="Hello":
-       await message.reply(text="Welcome")
-    else:
-      await message.reply(text=message.text)
+    try:
+        msg = message.reply_to_message.text # if replied
+        palm.configure(api_key='AIzaSyBcJCFrUHkLrF5ZhjJ_dsGyitgIPvqZlMc')
+        response = palm.reply(messages=[msg])
+        print (response.last)
+        await message.reply(text= response.last)
 
+    except:
+        text = message.text
+        palm.configure(api_key='AIzaSyBcJCFrUHkLrF5ZhjJ_dsGyitgIPvqZlMc')
+        response = palm.chat(messages=[text])
+        print (response.last)
+        await message.reply(text= response.last)
+       
 
+  
 async def main() -> None:
     """"Entry Point"""
     await dp.start_polling(bot)
