@@ -44,7 +44,6 @@ async def chat(message: types.Message):
         else:
             result = ai(text, 1)
 
-
         await message.reply(text=result)
 
     except:
