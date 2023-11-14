@@ -9,7 +9,7 @@ messages = []
 
 bot = Bot(token="6538080926:AAFMORmrgG5Bh0Ri7ng4MX8HJ47lhxVGajE")
 dp = Dispatcher(bot)
-client = OpenAI(api_key='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')
+client = OpenAI(api_key='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')
 
 
 @dp.message_handler(commands=['start'])
