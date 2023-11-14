@@ -3,13 +3,15 @@ from aiogram import Bot, Dispatcher, types, executor
 import requests
 from PIL import Image
 import os
-import logging
+from keep_alive import keep_alive
 previousresponse = ""
 messages = []
 
 bot = Bot(token="6538080926:AAFMORmrgG5Bh0Ri7ng4MX8HJ47lhxVGajE")
 dp = Dispatcher(bot)
-client = OpenAI(api_key='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')
+client = OpenAI(api_key=os.environ['API'])
+
+keep_alive()
 
 
 @dp.message_handler(commands=['start'])
@@ -78,7 +80,6 @@ async def chat(message: types.Message):
         await message.reply(response)
     except Exception as e:
         print(e)
-        logging.error(e)
 
 
 async def main() -> None:
@@ -87,5 +88,4 @@ async def main() -> None:
 
 if __name__ == "__main__":
     print("Service Started 🟢")
-    logging.info("Service Started 🟢")
     executor.start_polling(dp)
