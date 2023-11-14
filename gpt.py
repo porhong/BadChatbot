@@ -75,8 +75,8 @@ async def chat(message: types.Message):
         await message.answer_chat_action("typing")
         response = completion.choices[0].message.content
         await message.reply(response)
-    except:
-        pass
+    except Exception as e:
+        print(e)
 
 
 async def main() -> None:
