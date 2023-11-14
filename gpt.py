@@ -4,12 +4,17 @@ import requests
 from PIL import Image
 import os
 from keep_alive import keep_alive
+from dotenv import load_dotenv
+# Load the .env file
+load_dotenv()
 previousresponse = ""
 messages = []
+api = os.getenv('API')
 
 bot = Bot(token="6538080926:AAFMORmrgG5Bh0Ri7ng4MX8HJ47lhxVGajE")
 dp = Dispatcher(bot)
-client = OpenAI(api_key=os.environ['API'])
+# os.environ['API'])
+client = OpenAI(api_key=api)
 
 keep_alive()
 
