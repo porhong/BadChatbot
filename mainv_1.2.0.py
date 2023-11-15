@@ -21,7 +21,11 @@ async def welcome(message: types.Message):
     await message.reply('''Bot Cleaned!! 🧹''')
 
 
-async def start_chat(text, type):
+response = ""
+
+
+def start_chat(text, type):
+    global response
     if type == 1:
         response = genai.chat(
             model='models/chat-bison-001', temperature=0.50, top_p=0.95, top_k=40, messages=[text])
@@ -36,10 +40,10 @@ async def chat(message: types.Message):
     try:
         text = message.text
         if message.reply_to_message is None:
-            answer = await start_chat(text, 1)
+            answer = start_chat(text, 1)
             await message.reply(answer)
         else:
-            answer = await start_chat(text, 2)
+            answer = start_chat(text, 2)
             await message.reply(answer)
     except Exception as e:
         print(e)
