@@ -4,23 +4,11 @@ from aiogram import Bot, Dispatcher, types, executor
 
 API_KEY = 'AIzaSyBcJCFrUHkLrF5ZhjJ_dsGyitgIPvqZlMc'
 
-text = ""
+old_msg = []
 
 bot = Bot(token="6538080926:AAFMORmrgG5Bh0Ri7ng4MX8HJ47lhxVGajE")
 dp = Dispatcher(bot)
 genai.configure(api_key='AIzaSyBcJCFrUHkLrF5ZhjJ_dsGyitgIPvqZlMc')
-
-
-def ai(user_text, c_reply):
-    if c_reply == 0:
-        response = genai.chat(model='models/chat-bison-001',
-                              temperature=0.5, messages=[user_text])
-        return response.last
-    else:
-        reply = input(user_text)
-        reply = reply.response(model='models/chat-bison-001',
-                               temperature=0.5, messages=[user_text])
-        return reply.last
 
 
 @dp.message_handler(commands=['start'])
@@ -33,21 +21,28 @@ async def welcome(message: types.Message):
     await message.reply('''Bot Cleaned!! 🧹''')
 
 
+async def start_chat(text, type):
+    if type == 1:
+        response = genai.chat(
+            model='models/chat-bison-001', temperature=0.50, top_p=0.95, top_k=40, messages=[text])
+        return response.last
+    else:
+        response = response.reply(text)
+        return response.last
+
+
 @dp.message_handler()
 async def chat(message: types.Message):
     try:
-        global text
         text = message.text
-        print(text)
         if message.reply_to_message is None:
-            result = ai(text, 0)
+            answer = await start_chat(text, 1)
+            await message.reply(answer)
         else:
-            result = ai(text, 1)
-
-        await message.reply(text=result)
-
-    except:
-        pass
+            answer = await start_chat(text, 2)
+            await message.reply(answer)
+    except Exception as e:
+        print(e)
 
 
 async def main() -> None:
