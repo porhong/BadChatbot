@@ -1,11 +1,14 @@
 import google.generativeai as genai
+import os
+from dotenv import load_dotenv
 from aiogram import Bot, Dispatcher, types, executor
 
+load_dotenv()
 
-API_KEY = 'AIzaSyBcJCFrUHkLrF5ZhjJ_dsGyitgIPvqZlMc'
-bot = Bot(token="6538080926:AAFMORmrgG5Bh0Ri7ng4MX8HJ47lhxVGajE")
+bot = Bot(token=os.getenv('API_tele'))
 dp = Dispatcher(bot)
-genai.configure(api_key='AIzaSyBcJCFrUHkLrF5ZhjJ_dsGyitgIPvqZlMc')
+genai.configure(api_key=os.getenv('API_google'))
+response = ""
 
 
 @dp.message_handler(commands=['start'])
@@ -18,23 +21,20 @@ async def welcome(message: types.Message):
     await message.reply('''Bot Cleaned!! 🧹''')
 
 
-
-
-
 def start_chat(text, type):
     global response
     if type == 1:
         response = genai.chat(
-            model='models/chat-bison-001', temperature=0.50, top_p=0.95, top_k=40, messages=[text])
+            model='models/chat-bison-001', temperature=0.50, top_p=0.95, top_k=40, candidate_count=1, context="The best chat assistance in the world with short answers but meaningful.", messages=[text])
         if response.last is None:
-            answer = "I can not answer for this topic 😥"
+            answer = "I can not answer for this topic 😥. Please try again."
         else:
             answer = response.last
         return answer
     elif type == 2:
         response = response.reply(text)
         if response.last is None:
-            answer = "I can not answer for this topic 😥"
+            answer = "I can not answer for this topic 😥. Please try again."
         else:
             answer = response.last
         return answer
@@ -57,8 +57,10 @@ async def chat(message: types.Message):
     except Exception as e:
         print(e)
         await message.reply(f"""Error⚠️
-Bot was ran into an errot: <b>{e}</b>
-Please report this case to administrator.""")
+                            
+Bot was ran into an error: <strong>{e}</strong>
+
+Please report this case to administrator.""", parse_mode="html")
 
 
 async def main() -> None:
