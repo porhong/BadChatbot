@@ -1,3 +1,4 @@
 pillow
 openai
 aiogram==2.25.2
+ipython
