@@ -1,3 +1,4 @@
+import PIL.Image
 import google.generativeai as genai
 import os
 from dotenv import load_dotenv
@@ -18,14 +19,22 @@ async def welcome(message: types.Message):
 
 @dp.message_handler(commands=['clean',])
 async def welcome(message: types.Message):
+    global messages
+    messages = []
     await message.reply('''Bot Cleaned!! 🧹''')
 
-model = genai.GenerativeModel('gemini-pro')
-chat = model.start_chat(history=[])
+
+@dp.message_handler(commands=['help',])
+async def welcome(message: types.Message):
+    global messages
+    messages = []
+    await message.reply('''Coming soon !!!!!'''
+                        )
 
 
 def converstion(text, type):
     global messages
+    model = genai.GenerativeModel('gemini-pro')
     if type == 1:
         messages = [
             {'role': 'user',
@@ -34,7 +43,8 @@ def converstion(text, type):
             # Only one candidate for now.
             candidate_count=1,
             max_output_tokens=2048,
-            temperature=1.0))
+            temperature=0.5, top_p=0.95,
+            top_k=40))
 
         messages.append({'role': 'model',
                          'parts': [response.text]})
@@ -46,7 +56,8 @@ def converstion(text, type):
             # Only one candidate for now.
             candidate_count=1,
             max_output_tokens=2048,
-            temperature=1.0))
+            temperature=0.5, top_p=0.95,
+            top_k=40))
         messages.append({'role': 'model',
                          'parts': [response.text]})
         return response.text
@@ -55,14 +66,69 @@ def converstion(text, type):
 @dp.message_handler(content_types=['photo'])
 async def download_image(message: types.Message):
     try:
-        file_id = message.photo[-1].file_id
-        file = await bot.get_file(file_id)
-        file_path = file.file_path
-        await bot.download_file(file_path, destination='D:\Program\Project AI Chat\BadChatbot\img')
+        global messages
         await message.answer_chat_action("typing")
-        await message.reply(file_id)
+        model = genai.GenerativeModel('gemini-pro-vision')
+        text = message.caption
+        if message.reply_to_message is not None:
+            pass
+        else:
+            file_id = message.photo[-1].file_id
+            file = await bot.get_file(file_id)
+            file_path = file.file_path
+            await file.download(destination_file=file_path)
+            await message.answer_chat_action("typing")
+            img = PIL.Image.open(file_path)
+            if text is not None:
+                await message.answer_chat_action("typing")
+                response = model.generate_content(
+                    [text, img], generation_config=genai.types.GenerationConfig(
+                        # Only one candidate for now.
+                        candidate_count=1,
+                        max_output_tokens=2048,
+                        temperature=0.5, top_p=0.95,
+                        top_k=40,
+                    ))
+                response.resolve()
+                await message.answer_chat_action("typing")
+                os.remove(file_path)
+                await message.reply(response.text)
+                messages = [
+                    {'role': 'user',
+                     'parts': [text]}]
+                messages.append({'role': 'model',
+                                'parts': [response.text]})
+            else:
+                response = model.generate_content(img, generation_config=genai.types.GenerationConfig(
+                    # Only one candidate for now.
+                    candidate_count=1,
+                    max_output_tokens=2048,
+                    temperature=0.5, top_p=0.95,
+                    top_k=40))
+                await message.answer_chat_action("typing")
+                os.remove(file_path)
+                await message.reply(response.text)
+                messages = [
+                    {'role': 'user',
+                     'parts': [response.text]}]
+                messages.append({'role': 'model',
+                                'parts': [response.text]})
     except Exception as e:
-        print(e)
+        error_name = type(e).__name__
+        print(error_name)
+        if error_name == "ValueError":
+            messages.pop()
+            await message.reply("I can not answer for this promp 😥. Please try again by make it more specific.")
+        else:
+            await message.reply(f"""Error⚠️
+    --------------------------------------------------------
+    Bot was ran into an error: <strong>{error_name}</strong>
+    --------------------------------------------------------
+    We are sorry that make you feel 
+    inconvenience due this tool is on 
+    Develoment.
+    Please report this case to administrator.
+    --------------------------------------------------------""", parse_mode="html")
 
 
 @dp.message_handler()
@@ -71,6 +137,7 @@ async def chat(message: types.Message):
     try:
         text = message.text
         if message.reply_to_message is None:
+            messages = []
             await message.answer_chat_action("typing")
             answer = converstion(text, 1)
             await message.answer_chat_action("typing")
@@ -92,7 +159,8 @@ async def chat(message: types.Message):
     Bot was ran into an error: <strong>{error_name}</strong>
     --------------------------------------------------------
     We are sorry that make you feel 
-    inconvenience due this tool is on Develoment.
+    inconvenience due this tool is on 
+    Develoment.
     Please report this case to administrator.
     --------------------------------------------------------""", parse_mode="html")
 
